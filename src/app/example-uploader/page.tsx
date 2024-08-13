@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { Message, continueConversation } from '@/app/example-uploader/actions';
+import { Message, continueConversation } from './actions';
 import { UploadButton } from '@/utils/uploadthing';
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -23,6 +23,7 @@ export const maxDuration = 30;
 export default function UploadFormWithChat() {
   const [conversation, setConversation] = useState<Message[]>([]);
   const [uploadedImageUrl, setUploadedImageUrl] = useState('');
+  const [chatInput, setChatInput] = useState('');
 
   const form = useForm({
     resolver: zodResolver(formSchema),
@@ -46,28 +47,31 @@ export default function UploadFormWithChat() {
       Screenshot: ${uploadedImageUrl}
     `;
 
+    await handleSendMessage(messageContent);
+
+    setUploadedImageUrl('');
+  };
+
+  const handleSendMessage = async (content: string) => {
     const newMessages = [
       ...conversation,
-      { role: 'user' as const, content: messageContent }
+      { role: 'user' as const, content: content }
     ];
 
     const { messages } = await continueConversation(newMessages);
     setConversation(messages);
-
-    form.reset();
-    setUploadedImageUrl('');
   };
 
   return (
-    <div className="flex flex-row space-x-4 p-4">
-      <Card className="w-[350px]">
-        <CardHeader>
+    <div className="flex flex-row space-x-4 p-4 h-[100vh]">
+      <Card className="w-[350px] overflow-y-auto">
+        <CardHeader className='mb-[-10px]'>
           <CardTitle>Upload Form</CardTitle>
           <CardDescription>Enter URL, timestamp, instructions, and upload a screenshot.</CardDescription>
         </CardHeader>
         <CardContent>
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-2">
               <FormField
                 control={form.control}
                 name="url"
@@ -145,11 +149,11 @@ export default function UploadFormWithChat() {
         </CardFooter>
       </Card>
 
-      <Card className="flex-1">
+      <Card className="flex-1 flex flex-col overflow-hidden">
         <CardHeader>
           <CardTitle>Chat Interface</CardTitle>
         </CardHeader>
-        <CardContent className="h-[400px] overflow-y-auto">
+        <CardContent className="flex-grow overflow-y-auto">
           {conversation.map((message, i) => (
             <div key={i} className={`mb-4 ${message.role === 'user' ? 'text-blue-600' : 'text-green-600'}`}>
               <strong>{message.role === 'user' ? 'You: ' : 'AI: '}</strong>
@@ -157,6 +161,22 @@ export default function UploadFormWithChat() {
             </div>
           ))}
         </CardContent>
+        <CardFooter>
+          <form onSubmit={(e) => {
+            e.preventDefault();
+            if (chatInput.trim()) {
+              handleSendMessage(chatInput);
+              setChatInput('');
+            }
+          }} className="flex w-full space-x-2">
+            <Input
+              value={chatInput}
+              onChange={(e) => setChatInput(e.target.value)}
+              placeholder="Type a message..."
+            />
+            <Button type="submit">Send</Button>
+          </form>
+        </CardFooter>
       </Card>
     </div>
   );

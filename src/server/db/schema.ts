@@ -33,5 +33,23 @@ export const posts = createTable(
   (example) => ({
     nameIndex: index("name_idx").on(example.name),
   }),
+);
 
+export const economicEvents = createTable(
+  "event",
+  {
+    id: serial("id").primaryKey(),
+    time: varchar("time", { length: 50 }).notNull(),
+    currency: varchar("currency", { length: 10 }).notNull(),
+    event: varchar("event", { length: 256 }).notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .default(sql`CURRENT_TIMESTAMP`)
+      .notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .$onUpdate(() => new Date()),
+  },
+  (table) => ({
+    timeIndex: index("time_idx").on(table.time),
+    currencyIndex: index("currency_idx").on(table.currency),
+  })
 );
