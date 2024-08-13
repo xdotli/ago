@@ -8,6 +8,7 @@ import {
   serial,
   timestamp,
   varchar,
+  text
 } from "drizzle-orm/pg-core";
 
 /**
@@ -51,5 +52,28 @@ export const economicEvents = createTable(
   (table) => ({
     timeIndex: index("time_idx").on(table.time),
     currencyIndex: index("currency_idx").on(table.currency),
+  })
+);
+
+export const websites = createTable(
+  "websites",
+  {
+    id: serial("id").primaryKey(),
+    time: text('time').notNull(),
+    url: text('url').notNull(),
+    dom: text('dom'),
+    datasetId: text('dataset_id'),
+    userId: text('user_id'),
+    insturctions: text('instructions'),
+    imageUrl: text('image_url'),
+
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .default(sql`CURRENT_TIMESTAMP`)
+      .notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .$onUpdate(() => new Date()),
+  },
+  (table) => ({
+    timeIndex: index("time_idx").on(table.time),
   })
 );
