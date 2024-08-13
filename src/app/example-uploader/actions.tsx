@@ -29,12 +29,16 @@ export async function continueConversation(history: Message[]) {
     The screenshot may contain the information that the user is interested in. 
     The user input may specify what kind of data the user wants.
     Today is ${new Date().toISOString()}.
-    You are gonna return a JSON object with the following keys:
+    You are gonna first return a JSON object with the following keys:
     - url: The url of the webpage
-    - timestamp: The timestamp of the data
+    - time: user requested time
     - instructions: The instructions for the user
     - imageUrl: The url of the screenshot
     - document: the body element of the webpage in pure text. 
+    - datasetId: the id of the dataset. it should be something like 'dataset_{first 14 chars of url}'
+    - schema: all columns in the screenshot. for example. 
+    
+    Then call the browserTool. 
     `,
     messages: history,
     tools: {
