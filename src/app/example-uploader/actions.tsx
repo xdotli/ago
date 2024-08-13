@@ -18,13 +18,23 @@ const browserbase = new Browserbase({
 // Use Browserbase AI SDK to enable browserbase and allow text content
 const browserTool = BrowserbaseAISDK(browserbase, { textContent: true });
 
-
 export async function continueConversation(history: Message[]) {
   const { text, toolResults } = await generateText({
     model: openai('gpt-4o'),
     maxTokens: 4096,
     system: `
-    You are gonna receive
+    You are gonna receive an url, maybe a time range and a screenshot and a user input. 
+    You are gonna use browserbase to scrape the webpage and return data. 
+    The timestamp may be like 2w, 3d, or a specific date in the past. 
+    The screenshot may contain the information that the user is interested in. 
+    The user input may specify what kind of data the user wants.
+    Today is ${new Date().toISOString()}.
+    You are gonna return a JSON object with the following keys:
+    - url: The url of the webpage
+    - timestamp: The timestamp of the data
+    - instructions: The instructions for the user
+    - imageUrl: The url of the screenshot
+    - document: the body element of the webpage in pure text. 
     `,
     messages: history,
     tools: {
