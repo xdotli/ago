@@ -1,10 +1,10 @@
-'use client'
+'use client';
 
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { useChat } from 'ai/react';
+import { Message, continueConversation } from '@/app/example-uploader/actions';
 import { UploadButton } from '@/utils/uploadthing';
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -18,7 +18,10 @@ const formSchema = z.object({
   instructions: z.string(),
 });
 
+export const maxDuration = 30;
+
 export default function UploadFormWithChat() {
+  const [conversation, setConversation] = useState<Message[]>([]);
   const [uploadedImageUrl, setUploadedImageUrl] = useState('');
 
   const form = useForm({
@@ -28,10 +31,6 @@ export default function UploadFormWithChat() {
       timestamp: '',
       instructions: '',
     },
-  });
-
-  const { messages, append, reload, stop, isLoading, input, setInput } = useChat({
-    api: '/api/chat', // Make sure this endpoint is set up in your Next.js API routes
   });
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
@@ -47,10 +46,13 @@ export default function UploadFormWithChat() {
       Screenshot: ${uploadedImageUrl}
     `;
 
-    await append({
-      role: 'user',
-      content: messageContent,
-    });
+    const newMessages = [
+      ...conversation,
+      { role: 'user' as const, content: messageContent }
+    ];
+
+    const { messages } = await continueConversation(newMessages);
+    setConversation(messages);
 
     form.reset();
     setUploadedImageUrl('');
@@ -148,26 +150,13 @@ export default function UploadFormWithChat() {
           <CardTitle>Chat Interface</CardTitle>
         </CardHeader>
         <CardContent className="h-[400px] overflow-y-auto">
-          {messages.map((message, i) => (
+          {conversation.map((message, i) => (
             <div key={i} className={`mb-4 ${message.role === 'user' ? 'text-blue-600' : 'text-green-600'}`}>
               <strong>{message.role === 'user' ? 'You: ' : 'AI: '}</strong>
               {message.content}
             </div>
           ))}
         </CardContent>
-        <CardFooter>
-          <form onSubmit={(e) => { e.preventDefault(); append({ role: 'user', content: input }); setInput(''); }}
-            className="flex w-full space-x-2">
-            <Input
-              value={input}
-              placeholder="Type a message..."
-              onChange={(e) => setInput(e.target.value)}
-            />
-            <Button type="submit" disabled={isLoading}>
-              Send
-            </Button>
-          </form>
-        </CardFooter>
       </Card>
     </div>
   );
