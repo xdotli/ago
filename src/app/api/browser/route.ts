@@ -2,6 +2,8 @@ import { openai } from '@ai-sdk/openai';
 import { Browserbase, BrowserbaseAISDK } from '@browserbasehq/sdk';
 import { generateText } from 'ai';
 
+export const dynamic = 'force-dynamic'
+
 // Init the Browserbase SDK
 const browserbase = new Browserbase({
   apiKey: process.env.BROWSERBASE_API_KEY,

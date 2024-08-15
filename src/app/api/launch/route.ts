@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server'
 import puppeteer from 'puppeteer-core'
 
+export const dynamic = 'force-dynamic'
+
 export async function GET() {
   try {
     const browser = await puppeteer.connect({
@@ -41,7 +43,7 @@ export async function GET() {
         const time = await row.$eval('td.time', el => el?.textContent?.trim() ?? '')
         const currency = await row.$eval('td.flagCur', el => el?.textContent?.trim() ?? '')
         const event = await row.$eval('td.event', el => el?.textContent?.trim() ?? '')
-        
+
         eventDetails.push({ time, currency, event })
       }
     }
@@ -49,8 +51,8 @@ export async function GET() {
     await page.close()
     await browser.disconnect()
 
-    return NextResponse.json({ 
-      success: true, 
+    return NextResponse.json({
+      success: true,
       message: 'Economic Calendar data fetched successfully',
       events: eventDetails
     })
