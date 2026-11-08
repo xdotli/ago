@@ -1,6 +1,6 @@
 'use server';
 
-import { generateText } from 'ai';
+import { generateText, tool } from 'ai';
 import { openai } from '@ai-sdk/openai';
 import { Browserbase, BrowserbaseAISDK } from "@browserbasehq/sdk";
 import { z } from 'zod';
@@ -16,12 +16,18 @@ const browserbase = new Browserbase({
 });
 
 // Use Browserbase AI SDK to enable browserbase and allow text content
-const browserTool = BrowserbaseAISDK(browserbase, { textContent: true });
+const browserbaseTool = BrowserbaseAISDK(browserbase, { textContent: true });
+// AI SDK 5 tools take `inputSchema`; the Browserbase helper still returns the v3 `parameters` shape
+const browserTool = tool({
+  description: browserbaseTool.description,
+  inputSchema: z.object({ url: z.string().describe('Page URL to be loaded') }),
+  execute: browserbaseTool.execute,
+});
 
 export async function continueConversation(history: Message[]) {
   const { text, toolResults } = await generateText({
     model: openai('gpt-4o'),
-    maxTokens: 4096,
+    maxOutputTokens: 4096,
     system: `
     You are gonna receive an url, maybe a time range and a screenshot and a user input. 
     You are gonna use browserbase to scrape the webpage and return data. 
@@ -51,7 +57,7 @@ export async function continueConversation(history: Message[]) {
       ...history,
       {
         role: 'assistant' as const,
-        content: text || toolResults.map(toolResult => toolResult.result).join('\n'),
+        content: text || toolResults.map(toolResult => toolResult.output).join('\n'),
       },
     ],
   };

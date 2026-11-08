@@ -6,6 +6,9 @@ await import("./src/env.js");
 
 /** @type {import("next").NextConfig} */
 const config = {
+  // @browserbasehq/sdk is CommonJS and require()s puppeteer-core, which is ESM-only since v25:
+  // load both from node_modules at runtime (Node >= 22.12 can require ESM) instead of bundling them.
+  serverExternalPackages: ["@browserbasehq/sdk", "puppeteer-core"],
   typescript: {
     ignoreBuildErrors: true,
   },
