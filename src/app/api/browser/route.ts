@@ -1,6 +1,7 @@
 import { openai } from '@ai-sdk/openai';
 import { Browserbase, BrowserbaseAISDK } from '@browserbasehq/sdk';
-import { generateText } from 'ai';
+import { generateText, tool } from 'ai';
+import { z } from 'zod';
 
 export const dynamic = 'force-dynamic'
 
@@ -11,7 +12,13 @@ const browserbase = new Browserbase({
 });
 
 // Use Browserbase AI SDK to enable browserbase and allow text content
-const browserTool = BrowserbaseAISDK(browserbase, { textContent: true });
+const browserbaseTool = BrowserbaseAISDK(browserbase, { textContent: true });
+// AI SDK 5 tools take `inputSchema`; the Browserbase helper still returns the v3 `parameters` shape
+const browserTool = tool({
+  description: browserbaseTool.description,
+  inputSchema: z.object({ url: z.string().describe('Page URL to be loaded') }),
+  execute: browserbaseTool.execute,
+});
 
 // Generates text using the browserTool and OpenAI
 export async function GET(request: Request) {
